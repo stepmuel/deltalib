@@ -2,6 +2,19 @@
 
 A data store that syncs with a server.
 
+Download using npm:
+
+  npm install stepmuel/deltalib
+  cd node_modules/deltasync
+  node server
+
+Clone with git:
+
+  git clone https://github.com/stepmuel/deltalib.git
+  cd deltalib
+  npm install
+  node server
+
 ## Terminology
 
 The DeltaSync protocol relies heavily on JSON, hence the terms *object*, *array* and *value* will be used according to their definition in the [JSON specification](http://json.org/): 

@@ -1,0 +1,18 @@
+{
+  "name": "deltasync",
+  "version": "0.0.1",
+  "description": "A data store that syncs with a server.",
+  "main": "lib/delta.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stephan Müller <stephan@heap.ch>",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "clone": "^2.1.0",
+    "eventemitter2": "^2.2.1",
+    "jquery": "^3.1.1",
+    "uuid": "^3.0.1",
+    "minimist": "^1.2.0"
+  }
+}

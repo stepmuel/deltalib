@@ -1,0 +1,48 @@
+{
+  "string": {
+    "empty": "",
+    "full": "full"
+  },
+  "number": {
+    "zero": 0,
+    "one": 1,
+    "neg": -1,
+    "float": 0.1
+  },
+  "object": {
+    "empty": {},
+    "deepempty": {
+      "empty": {},
+      "deeper": {
+        "empty": {}
+      }
+    },
+    "deepfull": {
+      "empty": {},
+      "deeper": {
+        "full": "full"
+      }
+    },
+    "types": {
+      "string": "",
+      "number": 0,
+      "object": {},
+      "array": [],
+      "true": true,
+      "false": false
+    }
+  },
+  "array": {
+    "empty": [],
+    "types": [
+      "",
+      0,
+      {},
+      [],
+      true,
+      false
+    ]
+  },
+  "true": true,
+  "false": false
+}

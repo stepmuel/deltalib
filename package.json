@@ -2,9 +2,14 @@
   "name": "deltasync",
   "version": "0.0.1",
   "description": "A data store that syncs with a server.",
+  "private": true,
   "main": "lib/delta.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stepmuel/deltalib.git"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "Stephan Müller <stephan@heap.ch>",
   "license": "LGPL-3.0",
@@ -14,5 +19,8 @@
     "jquery": "^3.1.1",
     "uuid": "^3.0.1",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
   }
 }

@@ -4,16 +4,16 @@ A data store that syncs with a server.
 
 Download using npm:
 
-  npm install stepmuel/deltalib
-  cd node_modules/deltasync
-  node server
+    npm install stepmuel/deltalib
+    cd node_modules/deltasync
+    node server
 
 Clone with git:
 
-  git clone https://github.com/stepmuel/deltalib.git
-  cd deltalib
-  npm install
-  node server
+    git clone https://github.com/stepmuel/deltalib.git
+    cd deltalib
+    npm install
+    node server
 
 ## Terminology
 
@@ -37,7 +37,7 @@ The **model** (or *data model*) is a single object which contains data which is 
 
 A **revision** is a particular state of a model with a unique **revision id**. If two revisions have the same id, their models are equal. 
 
-A **key path** are arrays of member names, describing the position of a value within an object hierarchy. `[]` points to the object itself, `['a', 'b']` points to the member `b` of member `a` of the object. 
+A **key path** is an arrays of member names, describing the position of a value within an object hierarchy. `[]` points to the object itself, `['a', 'b']` points to the member `b` of member `a` of the object. 
 
 ## delta.utils
 

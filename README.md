@@ -59,17 +59,17 @@ Returns whether value `a` is an object. Many functions like `merge`, `patch` and
 
 Returns whether object `a` contains values other than objects. An empty patch will leave any object unchanged. 
 
-    du.merge(a, b, del)
+    du.merge(data[, obj... ])
 
-Deeply merges object `b` into object `a`. All members from object `b` will be inserted into object `a`, replacing existing non-object values. If both values are objects, they will be merged recursively. 
+Deeply merges `obj` into `data`. All members from `obj` will be inserted into `data`, replacing existing non-object values. If both values are objects, they will be merged recursively. Values of `obj` will be cloned if necessary, so changes to `data` will never affect `obj`.
 
-If `del === true`, all `null` values in `b` will delete the corresponding member in `a`. 
+If the function is called with more than two parameters, the additional objects will also be merged into `data`. Later objects will overwrite members set by earlier objects. 
 
-    du.patch(data[, patch... ])
+Returns `data`. To clone `data` before applying a patch, use `dataClone = du.patch({}, data, obj)`. 
 
-Applies one or more patches to `data` using `du.merge(data, patch, true)`. Later patches will overwrite values from previous patches with the same key. Patches are cloned before being merged. Returns `data`. 
+    du.patch(data[, obj... ])
 
-To clone `data` before applying a patch, use `c = du.patch({}, a, d)`. 
+Same as `du.merge`, but if a member of `obj` has a value of `null`, the corresponding member in `data` will be deleted.
 
     d = du.diff(a, b)
 

@@ -5,6 +5,24 @@ var du = delta.utils;
 
 var test = JSON.parse(fs.readFileSync('data/test.json', 'utf8'));
 
+var d = {
+  a: {a: 'a'},
+  b: {b: 'b'},
+  nb: {b: null},
+  ab: {a: 'a', b: 'b'},
+  anb: {a: 'a', b: null}
+};
+
+function testFunc(tests, func, thisArg) {
+  tests.forEach(function(t) {
+    it('should support ' + t[0], function() {
+      var args = t[1].map(du.clone);
+      var out = func.apply(thisArg, args);
+      assert(du.equal(out, t[2]));
+    });
+  });
+};
+
 describe('Utils', function() {
   
   describe('#clone()', function() {
@@ -42,26 +60,38 @@ describe('Utils', function() {
   });
   
   describe('#merge()', function() {
-    var tests = [];
-    var d = {
-      a: {a: 'a'},
-      b: {b: 'b'},
-      nb: {b: null},
-      ab: {a: 'a', b: 'b'},
-      anb: {a: 'a', b: null}
-    }
-    tests.push(['insert', true, d.a, d.b, d.ab]);
-    tests.push(['remove', true, d.ab, d.nb, d.a]);
-    tests.push(['replace', true, d.anb, d.b, d.ab]);
-    tests.push(['null', false, d.a, d.nb, d.anb]);
-    tests.push(['deepmerge', true, {d: d.a}, {d: d.b}, {d: d.ab}]);
-    tests.forEach(function(t) {
-      it('should support ' + t[0], function() {
-        var d = du.clone(t[2]);
-        du.merge(d, t[3], t[1]);
-        assert(du.equal(d, t[4]));
-      });
+    var tests = [
+      ['insert', [d.a, d.b], d.ab],
+      ['replace', [d.anb, d.b], d.ab],
+      ['null', [d.a, d.nb], d.anb],
+      ['deepmerge', [{d: d.a}, {d: d.b}], {d: d.ab}],
+      ['multiple arguments', [{}, d.nb, d.a, d.b], d.ab],
+    ];
+    testFunc(tests, du.merge);
+    it('3rd argument should not affect 2nd argument', function() {
+      var a = du.clone(d.a);
+      var b = du.clone(d.b);
+      du.merge({}, a, b);
+      assert(du.equal(a, d.a));
     });
   });
+  
+  describe('#patch()', function() {
+    var tests = [
+      ['insert', [d.a, d.b], d.ab],
+      ['remove', [d.ab, d.nb], d.a],
+      ['replace', [d.anb, d.b], d.ab],
+      ['deepmerge', [{d: d.a}, {d: d.b}], {d: d.ab}],
+      ['multiple arguments', [{}, d.nb, d.a, d.b], d.ab],
+    ];
+    testFunc(tests, du.patch);
+    it('3rd argument should not affect 2nd argument', function() {
+      var a = du.clone(d.a);
+      var b = du.clone(d.b);
+      du.patch({}, a, b);
+      assert(du.equal(a, d.a));
+    });
+  });
+  
 });
 

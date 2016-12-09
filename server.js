@@ -29,6 +29,16 @@ if (load_path !== null) {
   patch({});
 }
 
+function queue(base, response) {
+  waiting.push([base, response]);
+  response.setTimeout(0);
+  response.on('close', function() {
+    waiting = waiting.filter(function(n) {
+      return n[1] != response;
+    });
+  });
+}
+
 function dispatch() {
   waiting = waiting.filter(function(n) {
     return !sendResponse(n[1], n[0], true);
@@ -63,15 +73,18 @@ function sendResponse(response, base, wait) {
     'Content-Type': 'application/json',
     'connection': 'keep-alive',
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
   };
   response.writeHead(200, headers);
   response.write(JSON.stringify(out));
   response.end("\n");
+  console.log('out: ', out);
   return true;
 }
 
 var server = http.createServer(function(request, response) {
+  // console.log(request.method);
   if (request.method == 'POST') {
     var payload = '';
     request.on('data', function(chunk) {
@@ -79,20 +92,29 @@ var server = http.createServer(function(request, response) {
     });
     request.on('end', function() {
       var data = JSON.parse(payload);
-      console.log(data);
+      console.log('in: ', data);
       if (data.patch !== undefined) {
         patch(data.patch);
       }
       if (data.wait) {
-        waiting.push([data.base, response]);
-        response.setTimeout(0);
+        queue(data.base, response);
       } else {
         sendResponse(response, data.base);
       }
       dispatch();
     });
-  } else {
+  } else if (request.method == 'GET') {
     sendResponse(response);
+  } else {
+    var headers = {
+      'Content-Type': 'application/json',
+      'connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+    };
+    response.writeHead(200, headers);
+    response.end();
   }
 });
 
@@ -102,5 +124,5 @@ var server = http.createServer(function(request, response) {
 // });
 
 server.listen(parseInt(port), function() {
-  console.log("DeltaSync server at  http://localhost:" + port + "/\nCTRL + C to shutdown");
+  console.log("DeltaSync server at  http://localhost:" + port + "/sync\nCTRL + C to shutdown");
 });

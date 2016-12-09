@@ -29,6 +29,17 @@ if (load_path !== null) {
   patch({});
 }
 
+function handleRPC(rpc) {
+  // http://www.jsonrpc.org/specification
+  var ans = {jsonrpc: "2.0", id: rpc.id};
+  if (rpc.method == 'echo') {
+    ans.result = rpc.params;
+  } else {
+    ans.error = {code: -32601, message: 'method not found: ' + rpc.method};
+  }
+  return ans;
+}
+
 function queue(base, response) {
   waiting.push([base, response]);
   response.setTimeout(0);
@@ -41,7 +52,7 @@ function queue(base, response) {
 
 function dispatch() {
   waiting = waiting.filter(function(n) {
-    return !sendResponse(n[1], n[0], true);
+    return !sendResponse(n[1], null, n[0], true);
   });
 }
 
@@ -59,23 +70,27 @@ function patch(patch) {
   }
 }
 
-function sendResponse(response, base, wait) {
+var headers = {
+  'Content-Type': 'application/json',
+  'connection': 'keep-alive',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+};
+
+function sendResponse(response, ans, base, wait) {
   var out = {'revision': rev_id.toString()};
   // out.uid = model_uid;
-  if (base !== undefined && revision[base]) {
+  if (base && revision[base]) {
     out.patch = delta.utils.diff(revision[base], model);
     if (wait && delta.utils.empty(out.patch)) return false;
   } else {
     out.data = model;
   }
+  if (ans) {
+    out.ans = ans;
+  }
   // out.waiting = waiting.length;
-  var headers = {
-    'Content-Type': 'application/json',
-    'connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
-  };
   response.writeHead(200, headers);
   response.write(JSON.stringify(out));
   response.end("\n");
@@ -93,26 +108,28 @@ var server = http.createServer(function(request, response) {
     request.on('end', function() {
       var data = JSON.parse(payload);
       console.log('in: ', data);
-      if (data.patch !== undefined) {
+      if (data.patch) {
         patch(data.patch);
+      }
+      var ans = null;
+      if (data.rpc) {
+        data.wait = false;
+        if (Array.isArray(data.rpc)) {
+          ans = data.rpc.map(handleRPC);
+        } else {
+          ans = handleRPC(data.rpc);
+        }
       }
       if (data.wait) {
         queue(data.base, response);
       } else {
-        sendResponse(response, data.base);
+        sendResponse(response, ans, data.base);
       }
       dispatch();
     });
   } else if (request.method == 'GET') {
     sendResponse(response);
   } else {
-    var headers = {
-      'Content-Type': 'application/json',
-      'connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
-    };
     response.writeHead(200, headers);
     response.end();
   }

@@ -1,6 +1,6 @@
 {
   "name": "deltalib",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A data store that syncs with a server.",
   "private": true,
   "main": "lib/delta.js",

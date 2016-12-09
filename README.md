@@ -101,7 +101,7 @@ Has to be called if the object to be observed might have changed. `newObj` is th
 
     obs.on(path, func, thisArg)
 
-Adds an observer to `path`. Will call `func.call(thisArg, newObj, path, diff)` if the value at `path` changes. `newObj` will be the object after the observed change, and `diff = du.diff(oldObj, newObj)`. To get the observed value, use `value = du.pathGet(path, newObj)`.
+Adds an observer to `path`. Will call `func.call(thisArg, path, newObj, diff)` if the value at `path` changes. `newObj` will be the object after the observed change, and `diff = du.diff(oldObj, newObj)`. To get the observed value, use `value = du.pathGet(path, newObj)`.
 
     obs.off(path, func)
 

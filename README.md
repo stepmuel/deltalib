@@ -53,13 +53,17 @@ Imports the utils object into the current scope.
 
 Creates a copy `b` of value `a`. Any patches or other changes to objects or arrays inside `b` will no longer affect `a`. 
 
-    du.isMergeable(a)
+    du.isMergeable(obj)
 
-Returns whether value `a` is an object. Many functions like `merge`, `patch` and `diff` only work on objects. 
+Returns whether value `obj` is an object. Many functions like `merge`, `patch` and `diff` only work on objects. 
 
-    du.empty(a)
+    du.empty(obj)
 
-Returns whether object `a` contains values other than objects. An empty patch will leave any object unchanged. 
+Returns whether object `obj` is an empty object `{}`. 
+
+    du.deepEmpty(obj)
+
+Returns whether object `obj` contains values other than objects. A deepEmpty patch applied to an object will leave it unchanged. 
 
     du.merge(data[, obj... ])
 
@@ -75,7 +79,7 @@ Same as `du.merge`, but if a member of `obj` has a value of `null`, the correspo
 
     d = du.diff(a, b)
 
-Creates the (minimal) delta from `a` and `b`. (Minimal since it does not include empty objects.)
+Creates the (minimal) delta from `a` and `b`.
 
     v = du.pathGet(data, path, def)
 

@@ -6,11 +6,11 @@ var argv = require('minimist')(process.argv.slice(2));
 
 var port = argv.p || 8888;
 var load_path = argv.l || null;
-var store_path = argv.s || null;
+var save_path = argv.s || null;
 
-var model = {};
+var store = {};
 var rev_id = 0;
-var model_uid = uuidV1();
+var store_uid = uuidV1();
 
 // NOTE: revision cache needs to be flushed (memory leak)
 var revision = {};
@@ -19,12 +19,12 @@ var waiting = [];
 if (load_path !== null) {
   var data = JSON.parse(fs.readFileSync(load_path, 'utf8'));
   patch(data);
-} else if (store_path !== null && fs.existsSync(store_path)) {
-  var store = JSON.parse(fs.readFileSync(store_path, 'utf8'));
-  model = store.data;
-  rev_id = parseInt(store.revision);
-  model_uid = store.uid;
-  revision[rev_id] = model;
+} else if (save_path !== null && fs.existsSync(save_path)) {
+  var save = JSON.parse(fs.readFileSync(save_path, 'utf8'));
+  store = save.data;
+  rev_id = parseInt(save.revision);
+  store_uid = save.uid;
+  revision[rev_id.toString()] = store;
 } else {
   patch({});
 }
@@ -34,6 +34,8 @@ function handleRPC(rpc) {
   var ans = {jsonrpc: "2.0", id: rpc.id};
   if (rpc.method == 'echo') {
     ans.result = rpc.params;
+  } else if (rpc.method == 'revision') {
+    ans.result = rev_id.toString();
   } else {
     ans.error = {code: -32601, message: 'method not found: ' + rpc.method};
   }
@@ -58,15 +60,15 @@ function dispatch() {
 
 function patch(patch) {
   rev_id += 1;
-  model = delta.utils.patch({}, model, patch);
-  revision[rev_id.toString()] = model;
-  if (store_path !== null) {
-    var store = {
-      data: model,
+  store = delta.utils.patch({}, store, patch);
+  revision[rev_id.toString()] = store;
+  if (save_path !== null) {
+    var save = {
+      data: store,
       revision: rev_id.toString(),
-      uid: model_uid
+      uid: store_uid
     };
-    fs.writeFileSync(store_path, JSON.stringify(store));
+    fs.writeFileSync(save_path, JSON.stringify(save));
   }
 }
 
@@ -80,12 +82,12 @@ var headers = {
 
 function sendResponse(response, ans, base, wait) {
   var out = {'revision': rev_id.toString()};
-  // out.uid = model_uid;
+  // out.uid = store_uid;
   if (base && revision[base]) {
-    out.patch = delta.utils.diff(revision[base], model);
+    out.patch = delta.utils.diff(revision[base], store);
     if (wait && delta.utils.empty(out.patch)) return false;
   } else {
-    out.data = model;
+    out.data = store;
   }
   if (ans) {
     out.ans = ans;

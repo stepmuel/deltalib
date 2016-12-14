@@ -167,7 +167,12 @@ The response will contain the following members:
 
 ### RPC Requests
 
-`server` only supports a single RPC method called `echo`, which will just return its `params`. Other requests will be answered with the appropriate error object.
+`server` supports two RPC methods:
+
+* `echo` will return its `params`.
+* `revision` will return the current store revision id. If the request changes the revision (e.g. contains a patch), the returned revision id might be before or after those patches have been applied.
+
+Other requests will be answered with the appropriate error object.
 
 ### Known Limitations
 

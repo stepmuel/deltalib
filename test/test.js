@@ -46,17 +46,54 @@ describe('Utils', function() {
     });
   });
   
-  describe('#isMergeable()', function() {
+  describe('#clone()', function() {
+    var clone = du.clone(test);
+    // clone.foo = "bar"; // makes test fail
+    it('clone should be equal to original', function() {
+      assert(du.equal(clone, test));
+    });
+    var paths = [];
+    paths.push(['true']);
+    paths.push(['string', 'empty']);
+    paths.push(['object', 'deepempty']);
+    // clone = test; // makes tests fail
+    paths.forEach(function(p) {
+      it('clone.' + p.join('.') + ' = "newValue" does not affect original', function() {
+        var oldValue = du.pathGet(test, p);
+        du.pathSet(clone, p, "newValue");
+        var value = du.pathGet(test, p);
+        assert(du.equal(value, oldValue));
+      });
+    });
+  });
+  
+  describe('#equal()', function() {
     var types = du.clone(test.object.types);
     types.null = null;
-    for (var t in types) {
-      var v = types[t];
-      var mergeable = t === 'object';
-      var str = mergeable ? ' should ' : ' should not ';
-      it(t + str + 'be mergeable', function() {
-        assert.equal(mergeable, du.isMergeable(v));
+    // compare types with all other types
+    for (var t1 in types) {
+      var fail = false;
+      var a = du.clone(types[t1]);
+      for (var t2 in types) {
+        var b = types[t2];
+        var should = t1 === t2;
+        var is = du.equal(a, b);
+        fail |= should != is;
+      }
+      it('should support ' + t1, function() {
+        assert(!fail);
       });
     }
+    it('should detect equal recursively', function() {
+      var a = {a: 'a', b:{c: {}}};
+      var b = {b:{c: {}}, a: 'a'};
+      assert(du.equal(a, b));
+    });
+    it('should detect non-equal recursively', function() {
+      var a = {a: 'a', b:{c: {}}};
+      var b = {a: 'a', b:{c: {d: {}}}};
+      assert(!du.equal(a, b));
+    });
   });
   
   describe('#merge()', function() {
@@ -64,7 +101,7 @@ describe('Utils', function() {
       ['insert', [d.a, d.b], d.ab],
       ['replace', [d.anb, d.b], d.ab],
       ['null', [d.a, d.nb], d.anb],
-      ['deepmerge', [{d: d.a}, {d: d.b}], {d: d.ab}],
+      ['deep merge', [{d: d.a}, {d: d.b}], {d: d.ab}],
       ['multiple arguments', [{}, d.nb, d.a, d.b], d.ab],
     ];
     testFunc(tests, du.merge);
@@ -81,7 +118,7 @@ describe('Utils', function() {
       ['insert', [d.a, d.b], d.ab],
       ['remove', [d.ab, d.nb], d.a],
       ['replace', [d.anb, d.b], d.ab],
-      ['deepmerge', [{d: d.a}, {d: d.b}], {d: d.ab}],
+      ['deep patch', [{d: d.a}, {d: d.b}], {d: d.ab}],
       ['multiple arguments', [{}, d.nb, d.a, d.b], d.ab],
     ];
     testFunc(tests, du.patch);
@@ -91,6 +128,20 @@ describe('Utils', function() {
       du.patch({}, a, b);
       assert(du.equal(a, d.a));
     });
+  });
+  
+  describe('#diff()', function() {
+    var tests = [
+      ['empty', [d.a, d.a], {}],
+      ['insert', [d.a, d.ab], d.b],
+      ['remove', [d.ab, d.a], d.nb],
+      ['replace', [d.b, d.a], d.anb],
+      ['deep empty', [{d: d.a}, {d: d.a}], {}],
+      ['deep replace', [{d: d.b}, {d: d.a}], {d: d.anb}],
+      ['insert empty', [{d: d.a}, {d: d.a, e:{}}], {e: {}}],
+      ['unchanged complex objects', [test, du.clone(test)], {}],
+    ];
+    testFunc(tests, du.diff);
   });
   
 });

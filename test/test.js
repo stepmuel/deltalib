@@ -23,6 +23,8 @@ function testFunc(tests, func, thisArg) {
   });
 };
 
+var describez = function() {};
+
 describe('Utils', function() {
   
   describe('#clone()', function() {
@@ -142,6 +144,137 @@ describe('Utils', function() {
       ['unchanged complex objects', [test, du.clone(test)], {}],
     ];
     testFunc(tests, du.diff);
+  });
+  
+});
+
+describe('Observer', function() {
+  
+  var observer = null;
+  
+  var simple = {a: 'a', b: 'b'};
+  var complex = {a: {b: {c: {l: 'l'}, l: 'l'}, l: 'l'}, l: 'l'};
+  
+  var obj = {};
+  var that = {'isThat': true};
+  var cbk = function(path, data, diff) {
+    obj.this = this;
+    obj.path = path;
+    obj.data = data;
+    obj.diff = diff;
+  };
+  
+  describe('Observe []', function() {
+    it('#on() should add a subscriber', function() {
+      observer = new delta.Observer();
+      observer.on([], cbk, that);
+      assert(observer.subscribers.length === 1);
+    });
+  
+    it('#on() should not trigger callback', function() {
+      assert(du.empty(obj));
+    });
+  
+    it('callback should not be called if data has not changed', function() {
+      obj = {};
+      observer.update(simple, du.clone(simple));
+      assert(du.empty(obj));
+    });
+  
+    it('callback should be called if data has changed', function() {
+      obj = {};
+      observer.update(simple, du.patch({}, simple, {b: 'c'}));
+      assert(!du.empty(obj));
+    });
+  
+    it('callback should be called with thisArg', function() {
+      assert(obj.this === that);
+      obj = {};
+    });
+    
+    it('#off() with wrong path should not remove subscriber', function() {
+      observer.off(['a'], cbk);
+      assert(observer.subscribers.length === 1);
+    });
+    
+    it('#off() with wrong callback should not remove subscriber', function() {
+      observer.off([], cbk.bind(this));
+      assert(observer.subscribers.length === 1);
+    });
+    
+    it('#off() with correct arguments should remove subscriber', function() {
+      observer.off([], cbk);
+      assert(observer.subscribers.length === 0);
+    });
+    
+    it('#off() should not trigger callback', function() {
+      assert(du.empty(obj));
+    });
+  });
+  
+  describe('Observe Path', function() {
+    it('callback should not be called if data has not changed', function() {
+      observer = new delta.Observer();
+      observer.on(['a', 'b'], cbk, that);
+      obj = {};
+      observer.update(complex, du.clone(complex));
+      assert(du.empty(obj));
+    });
+  
+    it('callback should not be called if path does not exist', function() {
+      obj = {};
+      observer.update(du.patch({}, simple, {b: 'c'}), simple);
+      assert(du.empty(obj));
+    });
+  
+    it('callback should be called if path gets added', function() {
+      obj = {};
+      observer.update(complex, {l: 'l'});
+      assert(!du.empty(obj));
+    });
+    
+    it('callback should be called if path gets removed', function() {
+      obj = {};
+      observer.update({l: 'l'}, complex);
+      assert(!du.empty(obj));
+    });
+    
+    it('callback should be called if non-object gets assigned to subpath', function() {
+      obj = {};
+      observer.update({a: []}, complex);
+      assert(!du.empty(obj));
+    });
+    
+    it('callback should not be called with unchanged non-object in subpath', function() {
+      obj = {};
+      observer.update({a: [], l: 'l'}, {a: []});
+      assert(du.empty(obj));
+    });
+    
+    it('callback should not be called if parent changes', function() {
+      obj = {};
+      observer.update(du.patch({}, complex, {l: 'leaf'}), complex);
+      assert(du.empty(obj));
+    });
+    
+    it('callback should not be called if sibling changes', function() {
+      obj = {};
+      observer.update(du.patch({}, complex, {a: {l: 'leaf'}}), complex);
+      assert(du.empty(obj));
+    });
+    
+    it('callback should be called if child changes', function() {
+      obj = {};
+      observer.update(du.patch({}, complex, {a: {b: {l: 'leaf'}}}), complex);
+      assert(!du.empty(obj));
+    });
+    
+    it('callback should be called if grandchild changes', function() {
+      obj = {};
+      observer.update(du.patch({}, complex, {a: {b: {c: {l: 'leaf'}}}}), complex);
+      assert(!du.empty(obj));
+    });
+    
   });
   
 });

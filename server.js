@@ -82,7 +82,7 @@ var headers = {
 
 function sendResponse(response, ans, base, wait) {
   var out = {'revision': rev_id.toString()};
-  // out.uid = store_uid;
+  out.store = store_uid;
   if (base && revision[base]) {
     out.patch = delta.utils.diff(revision[base], store);
     if (wait && delta.utils.empty(out.patch)) return false;
@@ -110,6 +110,11 @@ var server = http.createServer(function(request, response) {
     request.on('end', function() {
       var data = JSON.parse(payload);
       console.log('in: ', data);
+      if (store_uid !== data.store) {
+        data.base = null;
+        data.patch = null;
+        data.wait = false;
+      }
       if (data.patch) {
         patch(data.patch);
       }

@@ -8,7 +8,7 @@ Download using npm:
     cd node_modules/deltasync
     node server
 
-Since `npm` does not update modules from git repos automatically, `npm install stepmuel/deltalib` has to be called again to fetch new versions.
+Since `npm` does not update modules from git repos automatically, `npm install stepmuel/deltalib` has to be called again to fetch new versions. When using Deltalib in your own project, it is recommended to use a particular revision (like `github:stepmuel/deltalib#1ecbec2`) since updates might still change the public interface from time to time.
 
 Clone with git:
 
@@ -55,15 +55,11 @@ Creates a copy `b` of value `a`. Any patches or other changes to objects or arra
 
     du.isMergeable(obj)
 
-Returns whether value `obj` is an object. Many functions like `merge`, `patch` and `diff` only work on objects. 
+Returns whether value `obj` is an object (in the JSON sense). Many functions like `merge`, `patch` and `diff` only work on objects. 
 
     du.empty(obj)
 
 Returns whether object `obj` is an empty object `{}`. 
-
-    du.deepEmpty(obj)
-
-Returns whether object `obj` contains values other than objects. A deepEmpty patch applied to an object will leave it unchanged. 
 
     du.merge(data[, obj... ])
 
@@ -79,7 +75,7 @@ Same as `du.merge`, but if a member of `obj` has a value of `null`, the correspo
 
     d = du.diff(a, b)
 
-Creates the (minimal) delta from `a` and `b`.
+Creates the (minimal) delta from `a` to `b`. Result is can be used with `du.patch`.
 
     v = du.pathGet(data, path, def)
 

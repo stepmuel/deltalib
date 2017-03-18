@@ -203,7 +203,7 @@ describe('Observer', function() {
     });
     
     it('#off() with correct arguments should remove subscriber', function() {
-      observer.off([], cbk);
+      observer.off([], cbk, that);
       assert(observer.subscribers.length === 0);
     });
     

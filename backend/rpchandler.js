@@ -45,7 +45,7 @@ methods.revision = function(req) {
 methods.revision.static = true;
 
 methods.patch = function(req) {
-  req.store.add(rpc.params);
+  req.store.add(req.params);
   return null;
 };
 

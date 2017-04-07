@@ -58,9 +58,13 @@ class Handler {
     var ans = null;
     if (data.rpc) {
       data.wait = false;
-      ans = data.rpc.map(function(rpc) {
-        return this.handleRpc(rpc, storeMatch);
-      }, this);
+      ans = data.rpc.map((rpc) => {
+        const req = {store: this.store, match: storeMatch};
+        Object.assign(req, rpc);
+        const ans = this.rpcHandler.call(req);
+        Object.assign(ans, {jsonrpc: '2.0', id: rpc.id});
+        return ans;
+      });
     }
     if (data.wait) {
       this.queue(base, res);
@@ -69,16 +73,6 @@ class Handler {
       this.store.commit();
       this.sendResponse(res, ans, base);
     }
-  }
-  handleRpc(rpc, storeMatch) {
-    const ans = {jsonrpc: "2.0", id: rpc.id};
-    if (this.rpcHandler.hasOwnProperty(rpc.method)) {
-      const func = this.rpcHandler[rpc.method];
-      Object.assign(ans, func.call(this, rpc, this.store, storeMatch));
-    } else {
-      ans.error = {code: -32601, message: 'method not found: ' + rpc.method}
-    }
-    return ans;
   }
   queue(base, response) {
     this.waiting.push({base: base, response: response});
